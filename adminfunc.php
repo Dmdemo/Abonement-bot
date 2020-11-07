@@ -32,6 +32,29 @@ function GetUsersFromMyGroup ($link, $n_group)
     // $arr[0] - имена
     // $arr[1] - телефоны
    }
+   
+function GetUsersFromMyGroupAll ($link, $n_group)
+  {
+     //даты из таблицы users
+     $date=date('Y-m-d');
+     $result = $link->query("SELECT * FROM `user` WHERE group_num = '$n_group' ");
+  
+     //сохраним строки в двумерный массив
+     $arrName = [];
+     $ArrTel = [];
+     $i=0;
+       while ($row = mysqli_fetch_array($result,MYSQLI_ASSOC) )
+         {
+           $arrName[$i] = $row['name'];
+           $arrTel[$i] = $row['tel'];
+           $i++;
+         } 
+         $arr=[$arrName,$arrTel];
+         //var_dump($arr);
+     return $arr;  
+    // $arr[0] - имена
+    // $arr[1] - телефоны
+   }   
 
 function AddUserVisit($link,$message)
  {
@@ -71,6 +94,38 @@ function AddUserVisit($link,$message)
              return $messageVisit;
         }
  }      
+ //отметим тех кто не пришел
+ function AddNoVisit($link, $arr)
+ {
+    
+    $date1=date('Y-m-d');
+   // echo '<pre>';
+   // print_r($arr[1]);
+   // echo '</pre>';
+    foreach ($arr[1] as $value)
+    {
+       // echo $value;
+        $res = $link->query("SELECT * FROM `visits` WHERE id_client='$value' and poseshenie='$date1'");
+        $row=mysqli_fetch_row($res);
+       if (is_null($row)) //если еще не отмечен визит будем ставить отсутсвие -1 визит
+           { 
+             
+             $resCountVis = $link->query("SELECT * FROM `user` WHERE tel='$value'");
+             $row=$resCountVis->fetch_assoc(); 
+             $resCountVisit = $row[countAbvisit];
+            
+             $vis=$resCountVisit-1; 
+             $messageVisit= hex2bin('e29c85').'('."$vis". ')'.'отсутсвие - '.$row[name]; 
+             $result = $link->query("INSERT INTO `visits` (`id_client`, `n_abonement`, `poseshenie`,`status`) VALUES ($value, '1', '$date1','1')");
+             //добавили визит в таблицу визитов
+             $resCountVisit=$resCountVisit-1;
+             $resultCV = $link->query("UPDATE `user` SET `countAbvisit`='$resCountVisit' WHERE tel = '$value'");
+             }
+             
+      }
+     // return $messageVisit;
+   }
+      
 
  function AddNewAb($link,$arrNewAb)
    {
@@ -131,8 +186,16 @@ function AddGroupForUser ($link, $ngroup, $tel, $chatid)
      // print_r ($row);
      // echo '</pre><br>'; 
    }
- 
-  //$ngroup='1';
+
+//echo 'd';
+ //  $n_group='1';
+//$arr1=GetUsersFromMyGroup ($link, $n_group) ;
+
+//AddNoVisit($link, $arr1);
+  // echo '<pre>';
+  //  print_r($arr1);
+  //  echo '</pre>';
+//$ngroup='1';
   //$tel='9813456554';
  // $chatid='157612765';
  // $a= AddGroupForUser ($link, $ngroup, $tel, $chatid);

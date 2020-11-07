@@ -23,8 +23,8 @@ require_once ('adminfunc.php');
         if ($data['data']) //если это колбэк квери
            {
             //функция отметить пользовалтелю посещение
-              $mes=AddUserVisit($link,$message);  //вызов функции отметить челу посещени по номеру тел  
-              if (is_null($mes)) {$mes='уже отмечен сегодня';};
+              $mes= AddUserVisit($link,$message);  //вызов функции отметить челу посещени по номеру тел  
+              if (is_null($mes)) {$mes='уже отмечен сегодня';}
               
               $method= 'sendMessage'; //посылаем сообщение то отмечено
               $send_data=[ 'text' => $mes ];
@@ -63,6 +63,23 @@ require_once ('adminfunc.php');
  
     }
   
+         //всех отметим кого нет
+      if ((substr_count($message, 'allchecked')==1) and ($data['data']))
+      {
+          $n_group = trim(substr("$message", 10)); 
+   //     $n_group=$groupn;//потом сделать выбор группы предагаем преподу, из доступных по времени
+         // $n_group='1';
+          $arr=GetUsersFromMyGroup ($link, $n_group);
+      
+          AddNoVisit($link,$arr); //отмечаем всем минусы кого нет, и уменьшаем кол-во остав визитов на 1
+          
+              $method= 'sendMessage';
+              $send_data=['text' => 'Отметили всех кого нет'.$n_group];
+              $send_data['chat_id'] = $data['message']['chat']['id'];
+              $res = sendTelegram($method, $send_data);exit;
+          
+      } 
+    
        //добавим номер группы куда запишем нового человека в какую группу
    if ((substr_count($message, ',')==1) and ($data['data'])) //если это колбэк квери и одна запятая (1,9115006464)
        {
@@ -126,7 +143,7 @@ require_once ('adminfunc.php');
               }   
     }
   
-   //выбор группы от админа при добавление абонемента 
+   //выбор группы от админа при отмечании 
   if ((substr_count($message, 'groupn')==1) and ($data['data']))
       {
           $n_group = substr("$message", 6); 
@@ -138,8 +155,9 @@ require_once ('adminfunc.php');
                 $temparr = array('text' => $arr[0][$i], 'callback_data' => trim($arr[1][$i]));
                 $keyb[] = $temparr;
                 }
-        
-           $inline_keyboard =array_chunk($keyb, 2);
+    $keyb[]=array('text' => 'Всех отметил', 'callback_data' => 'allchecked'.$n_group);
+           
+          $inline_keyboard =array_chunk($keyb, 2);
  
            $method= 'sendMessage';
             $send_data=[  
@@ -172,6 +190,31 @@ require_once ('adminfunc.php');
              $send_data['chat_id'] = $data['message']['chat']['id'];
              $res = sendTelegram($method, $send_data);exit;  
        }
+       
+  
+  //обработка callback query когда админ хочет посмотреть номер телефона для продлить напр абонемент, выбор группы дадим ему
+   if ((substr_count($message, 'admprodgrup')==1) and ($data['data']))
+      {
+          $n_group = substr("$message", 11); 
+    //    $n_group=$groupn;//потом сделать выбор группы предагаем преподу, из доступных по времени
+          $arr=GetUsersFromMyGroupAll ($link, $n_group);
+          $keyb=[];
+          for ($i=0; $i<count($arr[0]); $i++)
+               {
+                $temparr = array('text' => $arr[0][$i].' - '.$arr[1][$i], 'callback_data' => '_');
+                $keyb[] = $temparr;
+                }
+          $inline_keyboard =array_chunk($keyb, 1);
+  
+          $method= 'sendMessage';
+          $send_data=[  
+            'text' => hex2bin('f09f998F').' namaste',  
+            'reply_markup'=>array('inline_keyboard' => $inline_keyboard)
+                       ];
+           
+             $send_data['chat_id'] = $data['message']['chat']['id'];
+             $res = sendTelegram($method, $send_data);exit;  
+       }     
   //обраб callback query по номеру телефона покажем абонемент запрашиваемого юзера  
  if ((substr_count($message, 'abadmntel')==1) and ($data['data']))
   {
@@ -272,6 +315,7 @@ require_once ('adminfunc.php');
        ]; break; 
         
   
+      
     case 'информация' :
        
        $method= 'sendMessage';
@@ -324,6 +368,7 @@ require_once ('adminfunc.php');
                      ['text' => 'Добавить'],
                  ],
                  [
+                     ['text' => 'телефон'],
                      ['text' => 'Готово'],   
                  ]
                            ]
@@ -360,6 +405,28 @@ require_once ('adminfunc.php');
   
          } 
          break;  
+         
+     case 'телефон': //админ препод нажал продлить абонемент юзера
+       
+       if (checkAdmin($link, $data['chat']['id']))
+        {
+          $arrGroups=takePrepodGroups($link, $data['chat']['id']); //из какой группы будем смотреть?
+          $keyb=[];
+            for ($i=0; $i<count($arrGroups[0]); $i++)
+             {
+              $temparr = array('text' => $arrGroups[1][$i], 'callback_data' => 'admprodgrup'.$arrGroups[0][$i]);//добавим groupn в колбек квери чтоб узнать что это выбор группы
+              $keyb[] = $temparr;
+             }
+          $inline_keyboard =array_chunk($keyb, 2);
+ 
+          $method= 'sendMessage';
+          $send_data=[  
+            'text' => hex2bin('f09f998F').' В какой группе',  
+            'reply_markup'=>array('inline_keyboard' => $inline_keyboard)
+                       ];
+  
+         } 
+         break;       
     
     case 'добавить': //админ препод - добавить абонемент
        

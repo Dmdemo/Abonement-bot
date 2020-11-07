@@ -69,10 +69,11 @@ $link->set_charset("utf8");
       $i=0;
       while ($row = mysqli_fetch_array($result,MYSQLI_ASSOC) )
         {
-        $arr[$i] = $row['poseshenie'];
+       // $arr[$i] = $row['poseshenie'];
+        $arr[$i] = array( $row['poseshenie'], $row['status']);
         $i++;
          }      
-        //var_dump($arr);
+        var_dump($arr);
         return $arr;   
   }
  
@@ -92,6 +93,23 @@ $link->set_charset("utf8");
 	$text = $row[name]; // Ваш текст
 	$y = 350; // Смещение сверху (координата y)
 	$x = 600; // Смещение слева (координата x)
+	$pic = imagecreatefrompng($img); // Функция создания изображения
+	$color = imagecolorallocate($pic, 0, 0, 0); // Функция выделения цвета для текста
+	
+	imagettftext($pic, $font_size, $degree, $x, $y, $color, $font, $text); // Функция нанесения текста
+	//$path= $tel.".jpg";
+        $path= 'temp_ab/'.$tel.'.jpg';
+        imagepng($pic, $path); // Сохранение рисунка
+	imagedestroy($pic); // Освобождение памяти и закрытие рисунка
+        
+         //рисуем кол-во оставшихся визитов
+        $img = $path; // Ссылка на файл
+	$font = "./ArialMT.ttf"; // Ссылка на шрифт
+	$font_size = 22; // Размер шрифта
+	$degree = 0; // Угол поворота текста в градусах
+	$text = 'осталось - '.$row[countAbvisit]; // Ваш текст
+	$y = 450; // Смещение сверху (координата y)
+	$x = 820; // Смещение слева (координата x)
 	$pic = imagecreatefrompng($img); // Функция создания изображения
 	$color = imagecolorallocate($pic, 0, 0, 0); // Функция выделения цвета для текста
 	
@@ -154,7 +172,7 @@ $link->set_charset("utf8");
      
     foreach ($array as $value)
       {
-        $date = new DateTime($value);
+        $date = new DateTime($value[0]);
         $date = $date->format('d/m');    
          // echo $date;
     
@@ -166,8 +184,11 @@ $link->set_charset("utf8");
 	$y = 510; // Смещение сверху (координата y)
 	$x = 90+$i; // Смещение слева (координата x)
 	$pic = imagecreatefrompng($img); // Функция создания изображения
-	$color = imagecolorallocate($pic, 0, 0, 0); // Функция выделения цвета для текста
 	
+        if ($value[1]=='1')
+        {$color = imagecolorallocate($pic, 240, 13, 74); }// Функция выделения цвета для текста
+	else {$color = imagecolorallocate($pic, 0, 0, 0); }
+            
 	imagettftext($pic, $font_size, $degree, $x, $y, $color, $font, $text); // Функция нанесения текста
 	$path= 'temp_ab/'.$tel.'.jpg';
         //$path= $tel.".jpg";
@@ -240,10 +261,26 @@ function getDate2fromTel ($link,$tel) //вернуть дату админу п�
 // $b=getTel($link,$a);
 // echo $b;
  
-//$aid='9115006431';
+//$aid='9215358033';
 //$date1='2020.01.01'; 
 //$date2='2020.12.11';
 //$arr= ShowAb ($link, $aid, $date1, $date2);
+//echo '<pre>';
+//print_r ($arr[0][1]);
+////echo '</pre>';
+
+//foreach ($arr as $value)
+   //   {
+        //$date = new DateTime($value);
+       // $date = $date->format('d/m');    
+         // echo $date;
+     //    echo '<pre>';
+     //    print_r ($value);
+     //    echo '</pre>';
+         
+     //    echo $value[0];//даты
+     //    echo $value[0];// если 1 то пропуск занятия
+     // }
 //$tel='9115006431';
 //$path='temp_ab/9115006431.jpg';
 //$path=DrawAb ($arr,$tel);
