@@ -9,7 +9,7 @@ require_once ('adminfunc.php');
    file_put_contents('file.txt', '$data: '.print_r($data,1)."\n",FILE_APPEND);
    
    $data=$data['callback_query'] ? $data['callback_query'] : $data['message'];
-   define ('TOKEN', '1329877734:AAFFClMdNE5eWYJ8nfcTOIo86ZM2Y_coNi0');
+   define ('TOKEN', 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX');
   
    //записываем сообщения пользователя и приводим к нижнему регистру
    $message= mb_strtolower(($data['text'] ? $data['text'] : $data['data']),'utf-8');
