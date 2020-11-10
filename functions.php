@@ -10,9 +10,9 @@
 
 //создаем сооединение с бд
 $dbhost='localhost';
-$dbuser='kaplyabot';
-$dbpass='tetromino34c20c';
-$dbname='kaplyayoga';        
+$dbuser='XXXXXXXXXXX';
+$dbpass='XXXXXXXXXXX';
+$dbname='XXXXXXXXXXX';        
 $link = mysqli_connect( $dbhost, $dbuser, $dbpass, $dbname );
 if ( ! $link ) {
    echo "Ошибка: Невозможно установить соединение с MySQL.";
